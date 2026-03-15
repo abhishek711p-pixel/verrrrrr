@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String?   
+  image         String?
+  role          String    @default("STUDENT") // SQLite doesn't directly support enums in Prisma like Postgres
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  teacherProfile TeacherProfile?
+  studentProfile StudentProfile?
+  posts   CommunityPost[]
+  comments Comment[]
+}
+
+model TeacherProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio             String?
+  subscriptionFee Float    @default(500.0) 
+  
+  courses         Course[]
+  liveClasses     LiveClass[]
+}
+
+model StudentProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trialStartsAt   DateTime @default(now()) 
+  
+  subscriptions   Subscription[]
+  testScores      TestScore[]
+}
+
+model Course {
+  id               String   @id @default(cuid())
+  title            String
+  description      String?
+  teacherId        String
+  teacher          TeacherProfile @relation(fields: [teacherId], references: [id])
+  videos           Video[]
+  createdAt        DateTime @default(now())
+}
+
+model Video {
+  id            String   @id @default(cuid())
+  title         String
+  url           String   
+  thumbnailUrl  String?
+  courseId      String
+  course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+}
+
+model Subscription {
+  id               String   @id @default(cuid())
+  studentId        String
+  student          StudentProfile @relation(fields: [studentId], references: [id])
+  teacherId        String   
+  status           String   
+  startDate        DateTime @default(now())
+  endDate          DateTime
+}
+
+model LiveClass {
+  id               String   @id @default(cuid())
+  title            String
+  meetingLink      String
+  scheduledAt      DateTime
+  teacherId        String
+  teacher          TeacherProfile @relation(fields: [teacherId], references: [id])
+}
+
+model CommunityPost {
+  id          String   @id @default(cuid())
+  content     String
+  imageUrl    String?
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  comments    Comment[]
+  createdAt   DateTime @default(now())
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+  content     String
+  postId      String
+  post        CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model TestScore {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id])
+  testName    String
+  score       Int
+  totalMarks  Int
+  takenAt     DateTime @default(now())
+}
