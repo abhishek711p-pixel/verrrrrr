@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -18,7 +18,8 @@ model User {
   email         String    @unique
   password      String?   
   image         String?
-  role          String    @default("STUDENT") // SQLite doesn't directly support enums in Prisma like Postgres
+  role          Role      @default(STUDENT)
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -37,6 +38,9 @@ model TeacherProfile {
   
   courses         Course[]
   liveClasses     LiveClass[]
+  batches         Batch[]
+  sentMessages    TeacherMessage[]
+  subscriptions   Subscription[]
 }
 
 model StudentProfile {
@@ -47,6 +51,8 @@ model StudentProfile {
   
   subscriptions   Subscription[]
   testScores      TestScore[]
+  batches         BatchStudent[]
+  attendance      Attendance[]
 }
 
 model Course {
@@ -66,6 +72,7 @@ model Video {
   thumbnailUrl  String?
   courseId      String
   course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  views         Int      @default(0)
   createdAt     DateTime @default(now())
 }
 
@@ -74,6 +81,7 @@ model Subscription {
   studentId        String
   student          StudentProfile @relation(fields: [studentId], references: [id])
   teacherId        String   
+  teacher          TeacherProfile @relation(fields: [teacherId], references: [id])
   status           String   
   startDate        DateTime @default(now())
   endDate          DateTime
@@ -89,13 +97,14 @@ model LiveClass {
 }
 
 model CommunityPost {
-  id          String   @id @default(cuid())
-  content     String
-  imageUrl    String?
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
-  comments    Comment[]
-  createdAt   DateTime @default(now())
+  id           String    @id @default(cuid())
+  content      String
+  imageUrl     String?
+  authorId     String
+  author       User      @relation(fields: [authorId], references: [id])
+  comments     Comment[]
+  scheduledFor DateTime?
+  createdAt    DateTime  @default(now())
 }
 
 model Comment {
@@ -116,4 +125,62 @@ model TestScore {
   score       Int
   totalMarks  Int
   takenAt     DateTime @default(now())
+}
+
+model Batch {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  teacherId   String
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id])
+  students    BatchStudent[]
+  assignments Assignment[]
+  attendance  Attendance[]
+  messages    TeacherMessage[]
+  createdAt   DateTime @default(now())
+}
+
+model BatchStudent {
+  id          String   @id @default(cuid())
+  batchId     String
+  batch       Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id])
+  joinedAt    DateTime @default(now())
+
+  @@unique([batchId, studentId])
+}
+
+model Assignment {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  fileUrl     String?  
+  batchId     String
+  batch       Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model Attendance {
+  id          String   @id @default(cuid())
+  date        DateTime @default(now())
+  status      String   // "PRESENT", "ABSENT", "LATE"
+  batchId     String
+  batch       Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([batchId, studentId, date])
+}
+
+model TeacherMessage {
+  id          String   @id @default(cuid())
+  subject     String
+  content     String
+  teacherId   String
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id])
+  batchId     String?  // Optional: If null, sent to all students of the teacher. If set, sent to specific batch.
+  batch       Batch?   @relation(fields: [batchId], references: [id])
+  createdAt   DateTime @default(now())
 }
