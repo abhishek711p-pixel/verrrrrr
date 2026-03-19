@@ -3,36 +3,31 @@
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { registerUser } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Presentation, Loader2 } from "lucide-react";
 
-function LoginForm({ isSignUp, setIsSignUp }: { isSignUp: boolean, setIsSignUp: (val: boolean) => void }) {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultRole = searchParams.get('role') === 'teacher' ? 'TEACHER' : 'STUDENT';
   
   const [role, setRole] = useState<'STUDENT' | 'TEACHER'>(defaultRole as 'STUDENT' | 'TEACHER');
   const [isLoading, setIsLoading] = useState(false);
-  const [name, setName] = useState("");
+  const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
     setIsLoading(true);
+    setError("");
 
     try {
-      // For sign up, we could hit the /api/auth/register endpoint first, 
-      // but since our NextAuth provider automatically registers the user behind the scenes
-      // during signIn() if they don't exist, we can just use signIn and pass the name.
-      // Note: We need to modify our NextAuth config to accept and pass the 'name' field if we want it preserved during auto-generation.
-      // For now, NextAuth will auto-register them with their email prefix as name, but let's pass it anyway.
-      
       const result = await signIn("credentials", {
-        name: isSignUp ? name : undefined,
         email,
         password,
         role,
@@ -40,7 +35,11 @@ function LoginForm({ isSignUp, setIsSignUp }: { isSignUp: boolean, setIsSignUp: 
       });
 
       if (result?.error) {
-        console.error(result.error);
+        if (result.error === "INVALID_CREDENTIALS" || result.error === "CredentialsSignin") {
+          setError("Invalid login credentials. Please check your email and password.");
+        } else {
+          setError("Access denied. Please ensure your account is pre-registered.");
+        }
         setIsLoading(false);
         return;
       }
@@ -49,6 +48,7 @@ function LoginForm({ isSignUp, setIsSignUp }: { isSignUp: boolean, setIsSignUp: 
       router.refresh();
     } catch (error) {
       console.error(error);
+      setError("An unexpected error occurred during sign in.");
       setIsLoading(false);
     }
   }
@@ -68,7 +68,7 @@ function LoginForm({ isSignUp, setIsSignUp }: { isSignUp: boolean, setIsSignUp: 
             {role === 'TEACHER' ? 'Teacher Portal' : 'Student Portal'}
           </CardTitle>
           <CardDescription>
-            {isSignUp ? "Create a new account to get started" : "Enter your credentials to access your dashboard"}
+            Enter your credentials to access your dashboard
           </CardDescription>
         </div>
       </CardHeader>
@@ -88,51 +88,49 @@ function LoginForm({ isSignUp, setIsSignUp }: { isSignUp: boolean, setIsSignUp: 
           </button>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-6">
-          {isSignUp && (
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required={isSignUp}
-                className="h-11"
-              />
-            </div>
-          )}
+        {error && (
+          <div className="mb-6 p-3 text-sm font-medium text-rose-600 bg-rose-50 border border-rose-100 rounded-lg dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800 flex items-center gap-2">
+             <div className="w-1.5 h-1.5 rounded-full bg-rose-600 dark:bg-rose-400 animate-pulse" />
+             {error}
+          </div>
+        )}
+
+        <form onSubmit={onSubmit} className="space-y-6" autoComplete="off">
+          {/* Dummy inputs to trick browser autofill */}
+          <input type="text" style={{ display: 'none' }} name="fake_email" />
+          <input type="password" style={{ display: 'none' }} name="fake_password" />
           
           <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="h-11"
-            />
+            <Label htmlFor="u_identity">Email address</Label>
+              <Input
+                id="u_identity"
+                name="u_identity"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-11"
+                autoComplete="new-user-id"
+              />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              {!isSignUp && (
-                <a href="#" className="text-sm font-medium text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400">
-                  Forgot password?
-                </a>
-              )}
+              <a href="#" className="text-sm font-medium text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+                Forgot password?
+              </a>
             </div>
             <Input
-              id="password"
+              id="u_secret"
+              name="u_secret"
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               className="h-11"
+              autoComplete="new-password-field"
             />
           </div>
           <Button 
@@ -141,10 +139,7 @@ function LoginForm({ isSignUp, setIsSignUp }: { isSignUp: boolean, setIsSignUp: 
             disabled={isLoading}
           >
             {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-            {isLoading 
-              ? (isSignUp ? "Creating account..." : "Signing in...") 
-              : (isSignUp ? "Create Account" : "Sign in")
-            }
+            {isLoading ? "Signing in..." : "Sign in"}
           </Button>
         </form>
       </CardContent>
@@ -153,8 +148,6 @@ function LoginForm({ isSignUp, setIsSignUp }: { isSignUp: boolean, setIsSignUp: 
 }
 
 export default function LoginPage() {
-  const [isSignUp, setIsSignUp] = useState(false);
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 dark:bg-slate-950">
       <Card className="w-full max-w-md shadow-2xl relative overflow-hidden border-slate-200 dark:border-slate-800 transition-all duration-300">
@@ -163,18 +156,12 @@ export default function LoginPage() {
             <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
           </div>
         }>
-          <LoginForm isSignUp={isSignUp} setIsSignUp={setIsSignUp} />
+          <LoginForm />
         </Suspense>
         
         <CardFooter className="flex justify-center pb-8 border-t border-slate-100 dark:border-slate-800 pt-6">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button 
-              onClick={() => setIsSignUp(!isSignUp)} 
-              className="font-semibold text-slate-900 hover:underline dark:text-white"
-            >
-              {isSignUp ? "Sign in" : "Sign up"}
-            </button>
+          <p className="text-xs text-slate-500 dark:text-slate-400 italic text-center px-6">
+            Access to this platform is restricted to authorized users only. Please contact your administrator if you cannot sign in.
           </p>
         </CardFooter>
       </Card>

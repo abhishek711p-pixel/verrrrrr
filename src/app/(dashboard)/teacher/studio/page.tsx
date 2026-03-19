@@ -32,7 +32,7 @@ export default async function TeacherContentStudio() {
             <p className="text-slate-500 dark:text-slate-400 mt-1">Track your video performance and viewership analytics.</p>
           </div>
           <div className="w-48">
-             <UploadButton />
+             <UploadButton courses={analytics.courses || []} batches={analytics.batches || []} userEmail={session.user.email} />
           </div>
         </header>
 

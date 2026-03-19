@@ -3,97 +3,92 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-enum Role {
-  STUDENT
-  TEACHER
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  password      String?   
-  image         String?
-  role          Role      @default(STUDENT)
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  teacherProfile TeacherProfile?
+  id             String          @id @default(cuid())
+  name           String?
+  email          String          @unique
+  password       String?
+  image          String?
+  role           Role            @default(STUDENT)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  comments       Comment[]
+  posts          CommunityPost[]
+  replies        MessageReply[]
   studentProfile StudentProfile?
-  posts   CommunityPost[]
-  comments Comment[]
+  teacherProfile TeacherProfile?
 }
 
 model TeacherProfile {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String           @id @default(cuid())
+  userId          String           @unique
   bio             String?
-  subscriptionFee Float    @default(500.0) 
-  
+  subscriptionFee Float            @default(500.0)
+  batches         Batch[]
   courses         Course[]
   liveClasses     LiveClass[]
-  batches         Batch[]
-  sentMessages    TeacherMessage[]
   subscriptions   Subscription[]
+  sentMessages    TeacherMessage[]
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model StudentProfile {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  trialStartsAt   DateTime @default(now()) 
-  
-  subscriptions   Subscription[]
-  testScores      TestScore[]
-  batches         BatchStudent[]
-  attendance      Attendance[]
+  id                    String                 @id @default(cuid())
+  userId                String                 @unique
+  trialStartsAt         DateTime               @default(now())
+  assignmentSubmissions AssignmentSubmission[]
+  attendance            Attendance[]
+  batches               BatchStudent[]
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions         Subscription[]
+  receivedMessages      TeacherMessage[]
+  testScores            TestScore[]
 }
 
 model Course {
-  id               String   @id @default(cuid())
-  title            String
-  description      String?
-  teacherId        String
-  teacher          TeacherProfile @relation(fields: [teacherId], references: [id])
-  videos           Video[]
-  createdAt        DateTime @default(now())
+  id          String         @id @default(cuid())
+  title       String
+  description String?
+  teacherId   String
+  createdAt   DateTime       @default(now())
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id])
+  videos      Video[]
 }
 
 model Video {
-  id            String   @id @default(cuid())
-  title         String
-  url           String   
-  thumbnailUrl  String?
-  courseId      String
-  course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  views         Int      @default(0)
-  createdAt     DateTime @default(now())
+  id           String   @id @default(cuid())
+  title        String
+  url          String
+  thumbnailUrl String?
+  courseId     String
+  views        Int      @default(0)
+  createdAt    DateTime @default(now())
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
 model Subscription {
-  id               String   @id @default(cuid())
-  studentId        String
-  student          StudentProfile @relation(fields: [studentId], references: [id])
-  teacherId        String   
-  teacher          TeacherProfile @relation(fields: [teacherId], references: [id])
-  status           String   
-  startDate        DateTime @default(now())
-  endDate          DateTime
+  id        String         @id @default(cuid())
+  studentId String
+  teacherId String
+  status    String
+  startDate DateTime       @default(now())
+  endDate   DateTime
+  student   StudentProfile @relation(fields: [studentId], references: [id])
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id])
 }
 
 model LiveClass {
-  id               String   @id @default(cuid())
-  title            String
-  meetingLink      String
-  scheduledAt      DateTime
-  teacherId        String
-  teacher          TeacherProfile @relation(fields: [teacherId], references: [id])
+  id          String         @id @default(cuid())
+  title       String
+  meetingLink String
+  scheduledAt DateTime
+  teacherId   String
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id])
 }
 
 model CommunityPost {
@@ -101,86 +96,123 @@ model CommunityPost {
   content      String
   imageUrl     String?
   authorId     String
-  author       User      @relation(fields: [authorId], references: [id])
-  comments     Comment[]
   scheduledFor DateTime?
   createdAt    DateTime  @default(now())
+  batchId      String?
+  comments     Comment[]
+  author       User      @relation(fields: [authorId], references: [id])
+  batch        Batch?    @relation(fields: [batchId], references: [id], onDelete: Cascade)
 }
 
 model Comment {
-  id          String   @id @default(cuid())
-  content     String
-  postId      String
-  post        CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
-  createdAt   DateTime @default(now())
+  id        String        @id @default(cuid())
+  content   String
+  postId    String
+  authorId  String
+  createdAt DateTime      @default(now())
+  author    User          @relation(fields: [authorId], references: [id])
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model TestScore {
-  id          String   @id @default(cuid())
-  studentId   String
-  student     StudentProfile @relation(fields: [studentId], references: [id])
-  testName    String
-  score       Int
-  totalMarks  Int
-  takenAt     DateTime @default(now())
+  id         String         @id @default(cuid())
+  studentId  String
+  testName   String
+  score      Int
+  totalMarks Int
+  takenAt    DateTime       @default(now())
+  student    StudentProfile @relation(fields: [studentId], references: [id])
 }
 
 model Batch {
-  id          String   @id @default(cuid())
+  id          String           @id @default(cuid())
   name        String
   description String?
   teacherId   String
-  teacher     TeacherProfile @relation(fields: [teacherId], references: [id])
-  students    BatchStudent[]
+  createdAt   DateTime         @default(now())
   assignments Assignment[]
   attendance  Attendance[]
+  teacher     TeacherProfile   @relation(fields: [teacherId], references: [id])
+  students    BatchStudent[]
+  posts       CommunityPost[]
   messages    TeacherMessage[]
-  createdAt   DateTime @default(now())
 }
 
 model BatchStudent {
-  id          String   @id @default(cuid())
-  batchId     String
-  batch       Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  studentId   String
-  student     StudentProfile @relation(fields: [studentId], references: [id])
-  joinedAt    DateTime @default(now())
+  id        String         @id @default(cuid())
+  batchId   String
+  studentId String
+  joinedAt  DateTime       @default(now())
+  batch     Batch          @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  student   StudentProfile @relation(fields: [studentId], references: [id])
 
   @@unique([batchId, studentId])
 }
 
 model Assignment {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  fileUrl     String?  
-  batchId     String
-  batch       Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  dueDate     DateTime?
-  createdAt   DateTime @default(now())
+  id                    String                 @id @default(cuid())
+  title                 String
+  description           String?
+  fileUrl               String?
+  batchId               String
+  dueDate               DateTime?
+  createdAt             DateTime               @default(now())
+  validationAnswer      String?
+  validationQuestion    String?
+  batch                 Batch                  @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  assignmentSubmissions AssignmentSubmission[]
+}
+
+model AssignmentSubmission {
+  id           String         @id @default(cuid())
+  assignmentId String
+  studentId    String
+  submittedAt  DateTime       @default(now())
+  status       String         @default("SUBMITTED")
+  assignment   Assignment     @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student      StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, studentId])
 }
 
 model Attendance {
-  id          String   @id @default(cuid())
-  date        DateTime @default(now())
-  status      String   // "PRESENT", "ABSENT", "LATE"
-  batchId     String
-  batch       Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  studentId   String
-  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  id        String         @id @default(cuid())
+  date      DateTime       @default(now())
+  status    String
+  batchId   String
+  studentId String
+  batch     Batch          @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([batchId, studentId, date])
 }
 
 model TeacherMessage {
-  id          String   @id @default(cuid())
-  subject     String
-  content     String
-  teacherId   String
-  teacher     TeacherProfile @relation(fields: [teacherId], references: [id])
-  batchId     String?  // Optional: If null, sent to all students of the teacher. If set, sent to specific batch.
-  batch       Batch?   @relation(fields: [batchId], references: [id])
-  createdAt   DateTime @default(now())
+  id        String          @id @default(cuid())
+  subject   String
+  content   String
+  teacherId String
+  batchId   String?
+  createdAt DateTime        @default(now())
+  studentId String?
+  replies   MessageReply[]
+  batch     Batch?          @relation(fields: [batchId], references: [id])
+  student   StudentProfile? @relation(fields: [studentId], references: [id])
+  teacher   TeacherProfile  @relation(fields: [teacherId], references: [id])
+}
+
+model MessageReply {
+  id        String         @id @default(cuid())
+  content   String
+  messageId String
+  authorId  String
+  isPrivate Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  author    User           @relation(fields: [authorId], references: [id])
+  message   TeacherMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  STUDENT
+  TEACHER
 }

@@ -5,11 +5,42 @@ async function main() {
   const teacherEmail = "teacher@example.com";
   const studentEmail = "student@example.com";
   
-  let teacherUser = await prisma.user.findUnique({ where: { email: teacherEmail }, include: { teacherProfile: true } });
-  let studentUser = await prisma.user.findUnique({ where: { email: studentEmail }, include: { studentProfile: true } });
-  
-  if (!teacherUser || !teacherUser.teacherProfile) return console.log("Teacher not found");
-  if (!studentUser || !studentUser.studentProfile) return console.log("Student not found");
+  console.log("Seeding users...");
+  const teacherUser = await prisma.user.upsert({
+    where: { email: teacherEmail },
+    update: {},
+    create: {
+      email: teacherEmail,
+      name: "Prof. Anderson",
+      role: "TEACHER",
+      password: "password123", // In a real app, this would be hashed
+      teacherProfile: {
+        create: {
+          bio: "Expert in Fullstack Development and React.",
+          subscriptionFee: 499.0
+        }
+      }
+    },
+    include: { teacherProfile: true }
+  });
+
+  const studentUser = await prisma.user.upsert({
+    where: { email: studentEmail },
+    update: {},
+    create: {
+      email: studentEmail,
+      name: "Abhishek Student",
+      role: "STUDENT",
+      password: "password123",
+      studentProfile: {
+        create: {}
+      }
+    },
+    include: { studentProfile: true }
+  });
+
+  if (!teacherUser.teacherProfile) return console.log("Failed to create teacher profile");
+  if (!studentUser.studentProfile) return console.log("Failed to create student profile");
 
   const teacherProfileId = teacherUser.teacherProfile.id;
   const studentProfileId = studentUser.studentProfile.id;

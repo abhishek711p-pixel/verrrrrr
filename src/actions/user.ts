@@ -21,21 +21,38 @@ export async function getUserProfile(email: string) {
 // Additional mock action to seed a user if missing
 export async function ensureUserExists(email: string, role: "STUDENT" | "TEACHER") {
   try {
-    let user = await prisma.user.findUnique({ where: { email } });
+    let user = await prisma.user.findUnique({ 
+      where: { email },
+      include: {
+        studentProfile: true,
+        teacherProfile: true
+      }
+    });
     
     if (!user) {
-      user = await prisma.user.create({
+      // Access is restricted to pre-registered users only
+      console.warn(`ensureUserExists: Unauthorized access attempt by ${email}`);
+      return null;
+    }
+
+    // Ensure profile exists if user was pre-registered but profile was not created
+    const profile = role === 'STUDENT' ? user.studentProfile : user.teacherProfile;
+    if (!profile) {
+      user = await prisma.user.update({
+        where: { id: user.id },
         data: {
-          email,
-          role,
-          name: email.split('@')[0],
           ...(role === 'STUDENT' 
             ? { studentProfile: { create: {} } }
             : { teacherProfile: { create: {} } }
           )
+        },
+        include: {
+          studentProfile: true,
+          teacherProfile: true
         }
       });
     }
+    
     return user;
   } catch (error) {
     console.error("Failed to ensure user exists", error);

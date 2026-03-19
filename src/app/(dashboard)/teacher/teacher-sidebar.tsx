@@ -28,12 +28,6 @@ export function TeacherSidebar({ activeTab = "dashboard" }: { activeTab?: "dashb
             <Video className="mr-2 h-4 w-4" /> Content Studio
           </Button>
         </Link>
-        <Button 
-          variant="ghost" 
-          className={`w-full justify-start cursor-pointer hover:bg-slate-800 hover:text-white ${activeTab === 'settings' ? 'bg-slate-800 text-cyan-400' : ''}`}
-        >
-          <Settings className="mr-2 h-4 w-4" /> Revenue Settings
-        </Button>
         <Link href="/teacher/community" passHref>
           <Button 
             variant="ghost" 

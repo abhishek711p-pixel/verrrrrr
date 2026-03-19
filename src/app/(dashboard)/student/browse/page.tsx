@@ -1,14 +1,12 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getAvailableCourses, subscribeToTeacher } from "@/actions/student";
+import { getAvailableCourses } from "@/actions/student";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Video, LogOut, Award, Compass, PlayCircle, Layers, PlusCircle, CheckCircle2 } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Compass, PlayCircle, Layers, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { Suspense } from "react";
-
-import { SubscribeButton } from "./subscribe-button";
+import { StudentSidebar } from "../StudentSidebar";
 
 export default async function BrowsePage() {
   const session = await getServerSession(authOptions);
@@ -21,50 +19,14 @@ export default async function BrowsePage() {
   
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 hidden md:block">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-2 font-bold text-xl text-indigo-600 dark:text-indigo-400">
-            <BookOpen className="h-6 w-6" />
-            <span>Student Portal</span>
-          </div>
-        </div>
-        <nav className="p-4 space-y-2">
-          <Link href="/student" passHref>
-            <Button variant="ghost" className="w-full justify-start hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer">
-              <BookOpen className="mr-2 h-4 w-4" /> Dashboard
-            </Button>
-          </Link>
-          <Link href="/student/courses" passHref>
-             <Button variant="ghost" className="w-full justify-start hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer">
-              <Video className="mr-2 h-4 w-4" /> My Courses
-            </Button>
-          </Link>
-          <Link href="/student/exams" passHref>
-            <Button variant="ghost" className="w-full justify-start hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer">
-              <Award className="mr-2 h-4 w-4" /> Test Scores
-            </Button>
-          </Link>
-          <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800">
-            <Link href="/student/browse" passHref>
-              <Button variant="secondary" className="w-full justify-start bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-800/50">
-                <Compass className="mr-2 h-4 w-4" /> Browse Catalog
-              </Button>
-            </Link>
-          </div>
-        </nav>
-      </aside>
+      <StudentSidebar />
 
       <main className="flex-1 p-8 overflow-y-auto">
-        <header className="flex justify-between items-center mb-8">
+        <header className="mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">JEE & NEET Marketplace</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Discover expert educators for Physics, Chemistry, Maths, and Biology.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Course Catalog</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">Browse all available courses from registered teachers.</p>
           </div>
-          <form action="/api/auth/signout" method="POST">
-             <Button variant="outline" type="submit" className="border-slate-200 dark:border-slate-800 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400">
-               <LogOut className="mr-2 h-4 w-4" /> Sign Out
-             </Button>
-          </form>
         </header>
 
         {courses.length > 0 ? (
@@ -116,16 +78,14 @@ export default async function BrowsePage() {
                       <Layers className="w-4 h-4 mr-1 text-slate-400" />
                       {course.videos?.length || 0} Lectures
                     </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-xs text-slate-500 line-through">₹2,000/mo</span>
-                      <span className="font-bold text-lg text-emerald-600 dark:text-emerald-400">
-                        ₹300<span className="text-xs font-normal text-slate-500">/mo</span>
-                      </span>
-                    </div>
                   </div>
                 </CardContent>
                 <CardFooter className="pt-0 pb-5 px-6">
-                  <SubscribeButton />
+                  <Link href="/student/courses" className="w-full">
+                    <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
+                      <PlayCircle className="w-4 h-4 mr-2" /> View Courses
+                    </Button>
+                  </Link>
                 </CardFooter>
               </Card>
             ))}

@@ -2,10 +2,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getStudentExams } from "@/actions/student";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BookOpen, Video, LogOut, Award, CheckCircle2, TrendingUp, TrendingDown, Target } from "lucide-react";
-import Link from "next/link";
+import { Award, CheckCircle2, TrendingUp, TrendingDown, Target, BookOpen } from "lucide-react";
+import { StudentSidebar } from "../StudentSidebar";
 
 export default async function StudentExamsPage() {
   const session = await getServerSession(authOptions);
@@ -36,31 +35,7 @@ export default async function StudentExamsPage() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 hidden md:block">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-2 font-bold text-xl text-indigo-600 dark:text-indigo-400">
-            <BookOpen className="h-6 w-6" />
-            <span>Student Portal</span>
-          </div>
-        </div>
-        <nav className="p-4 space-y-2">
-          <Link href="/student" passHref>
-            <Button variant="ghost" className="w-full justify-start hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer">
-              <BookOpen className="mr-2 h-4 w-4" /> Dashboard
-            </Button>
-          </Link>
-          <Link href="/student/courses" passHref>
-             <Button variant="ghost" className="w-full justify-start hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer">
-              <Video className="mr-2 h-4 w-4" /> My Courses
-            </Button>
-          </Link>
-          <Link href="/student/exams" passHref>
-            <Button variant="secondary" className="w-full justify-start bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-800/50">
-              <Award className="mr-2 h-4 w-4" /> Test Scores
-            </Button>
-          </Link>
-        </nav>
-      </aside>
+      <StudentSidebar />
 
       <main className="flex-1 p-8 overflow-y-auto">
         <header className="flex justify-between items-center mb-8">
@@ -68,11 +43,6 @@ export default async function StudentExamsPage() {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Performance Analytics</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Review your test scores and track your overall academic progress.</p>
           </div>
-          <form action="/api/auth/signout" method="POST">
-             <Button variant="outline" type="submit" className="border-slate-200 dark:border-slate-800 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400">
-               <LogOut className="mr-2 h-4 w-4" /> Sign Out
-             </Button>
-          </form>
         </header>
 
         <div className="grid gap-6 md:grid-cols-3 mb-8">

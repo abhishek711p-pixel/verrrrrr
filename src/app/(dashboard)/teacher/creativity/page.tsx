@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Presentation, Video, LogOut, Settings, MessageSquare, Lightbulb, Users, ClipboardList, CalendarCheck, Mail } from "lucide-react";
+import { Lightbulb, Users, ClipboardList, CalendarCheck, Mail, Award } from "lucide-react";
 import Link from "next/link";
 import { TeacherSidebar } from "../teacher-sidebar";
 
@@ -36,7 +36,7 @@ export default async function TeacherCreativityPage() {
                     <Users className="w-8 h-8" />
                  </div>
                  <div>
-                   <CardTitle className="text-xl group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Batches & Students</CardTitle>
+                   <CardTitle className="text-xl group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Batches &amp; Students</CardTitle>
                    <CardDescription>View performance per student</CardDescription>
                  </div>
               </CardHeader>
@@ -54,7 +54,7 @@ export default async function TeacherCreativityPage() {
                     <ClipboardList className="w-8 h-8" />
                  </div>
                  <div>
-                   <CardTitle className="text-xl group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Notes & Assignments</CardTitle>
+                   <CardTitle className="text-xl group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Notes &amp; Assignments</CardTitle>
                    <CardDescription>Distribute content per batch</CardDescription>
                  </div>
               </CardHeader>
@@ -77,7 +77,7 @@ export default async function TeacherCreativityPage() {
                  </div>
               </CardHeader>
               <CardContent className="pt-4">
-                <p className="text-sm text-slate-600 dark:text-slate-400">Record daily attendance for each of your batches. Keep track of who is present, absent, or late to ensure students aren't falling behind.</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Record daily attendance for each of your batches. Keep track of who is present, absent, or late to ensure students aren&apos;t falling behind.</p>
               </CardContent>
             </Card>
           </Link>
@@ -100,8 +100,27 @@ export default async function TeacherCreativityPage() {
             </Card>
           </Link>
 
+          {/* ── NEW: Test Scores Card ── */}
+          <Link href="/teacher/creativity/scores" className="group">
+            <Card className="border-slate-200 dark:border-slate-800 shadow-sm h-full hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-slate-900 group-hover:border-indigo-400 dark:group-hover:border-indigo-500 md:col-span-2">
+              <CardHeader className="flex flex-row items-center gap-4 pb-2">
+                 <div className="p-3 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                    <Award className="w-8 h-8" />
+                 </div>
+                 <div>
+                   <CardTitle className="text-xl group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Record Test Scores</CardTitle>
+                   <CardDescription>Enter marks per student per exam</CardDescription>
+                 </div>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <p className="text-sm text-slate-600 dark:text-slate-400">Select a batch, pick a student, and enter their exam marks. Scores are saved to the database instantly and visible on the student&apos;s Performance Analytics page.</p>
+              </CardContent>
+            </Card>
+          </Link>
+
         </div>
       </main>
     </div>
   );
 }
+

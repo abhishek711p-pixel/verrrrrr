@@ -75,15 +75,27 @@ export async function getStudentCourses(email: string) {
       include: {
         studentProfile: {
           include: {
+            // ── Courses via active subscriptions ──
             subscriptions: {
-              where: { status: 'ACTIVE' },
+              where: { status: "ACTIVE" },
               include: {
                 teacher: {
                   include: {
                     user: true,
-                    courses: {
+                    courses: { include: { videos: true } }
+                  }
+                }
+              }
+            },
+            // ── Courses via enrolled batches ──
+            batches: {
+              include: {
+                batch: {
+                  include: {
+                    teacher: {
                       include: {
-                        videos: true
+                        user: true,
+                        courses: { include: { videos: true } }
                       }
                     }
                   }
@@ -95,24 +107,36 @@ export async function getStudentCourses(email: string) {
       }
     });
 
-    if (!user || !user.studentProfile) return [];
+    if (!user?.studentProfile) return [];
 
-    let courses: any[] = [];
+    const courseMap = new Map<string, any>();
+
+    // From subscriptions
     user.studentProfile.subscriptions.forEach((sub: any) => {
-      if (sub.teacher && sub.teacher.courses) {
-        courses = [...courses, ...sub.teacher.courses.map((c: any) => ({
-          ...c,
-          teacherName: sub.teacher.user.name
-        }))];
-      }
+      sub.teacher?.courses?.forEach((c: any) => {
+        if (!courseMap.has(c.id)) {
+          courseMap.set(c.id, { ...c, teacherName: sub.teacher.user.name });
+        }
+      });
     });
 
-    return courses;
+    // From batches (deduplicated)
+    user.studentProfile.batches.forEach((bs: any) => {
+      const teacher = bs.batch?.teacher;
+      teacher?.courses?.forEach((c: any) => {
+        if (!courseMap.has(c.id)) {
+          courseMap.set(c.id, { ...c, teacherName: teacher.user.name });
+        }
+      });
+    });
+
+    return Array.from(courseMap.values());
   } catch (error) {
     console.error("Failed to fetch courses", error);
     return [];
   }
 }
+
 
 export async function getStudentExams(email: string) {
   try {
@@ -220,5 +244,195 @@ export async function subscribeToTeacher(teacherId: string, studentEmail: string
   } catch (error) {
     console.error("Failed to subscribe", error);
     return { error: "Failed to subscribe" };
+  }
+}
+
+export async function getStudentBatches(email: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        studentProfile: {
+          include: {
+            batches: {
+              include: {
+                batch: {
+                  include: {
+                    teacher: {
+                      include: {
+                        user: true
+                      }
+                    },
+                    assignments: {
+                      orderBy: { createdAt: 'desc' },
+                      take: 2 // Just high-level preview
+                    },
+                    messages: {
+                      orderBy: { createdAt: 'desc' },
+                      take: 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!user || !user.studentProfile) return [];
+
+    return user.studentProfile.batches.map(bs => bs.batch);
+  } catch (error) {
+    console.error("Failed to fetch student batches", error);
+    return [];
+  }
+}
+
+export async function getBatchDetailsForStudentV2(email: string, batchId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { studentProfile: true }
+    });
+
+    if (!user || !user.studentProfile) return null;
+
+    const batch = await prisma.batch.findUnique({
+      where: { id: batchId },
+      include: {
+        teacher: {
+          include: { 
+            user: true,
+            courses: {
+              include: {
+                videos: true
+              }
+            }
+          }
+        },
+        assignments: {
+          include: {
+            assignmentSubmissions: {
+              where: { studentId: user.studentProfile.id }
+            }
+          },
+          orderBy: { createdAt: 'desc' }
+        },
+        messages: {
+          where: {
+            OR: [
+              { studentId: null }, // Broadcast to batch
+              { studentId: user.studentProfile.id } // Private to this student
+            ]
+          },
+          include: {
+            replies: {
+              include: { author: true },
+              orderBy: { createdAt: 'asc' }
+            }
+          },
+          orderBy: { createdAt: 'desc' }
+        },
+        attendance: {
+          where: { studentId: user.studentProfile.id },
+          orderBy: { date: 'desc' }
+        },
+        students: {
+          where: { studentId: user.studentProfile.id }
+        }
+      }
+    });
+
+    if (!batch) {
+      console.log("Batch not found for ID:", batchId);
+      return null;
+    }
+
+    return batch;
+  } catch (error) {
+    console.error("DEBUG: Failed to get batch details for student:", error);
+    return null;
+  }
+}
+
+export async function sendMessageReply(email: string, messageId: string, content: string, isPrivate: boolean = false) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user) return { error: "User not found" };
+
+    const reply = await prisma.messageReply.create({
+      data: {
+        content,
+        messageId,
+        authorId: user.id,
+        isPrivate
+      },
+      include: {
+        author: true
+      }
+    });
+
+    return { success: true, reply };
+  } catch (error) {
+    console.error("Failed to send reply", error);
+    return { error: "Failed to send reply" };
+  }
+}
+export async function submitAssignment(
+  studentEmail: string,
+  assignmentId: string,
+  providedAnswer: string
+) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email: studentEmail },
+      include: { studentProfile: true }
+    });
+
+    if (!user || !user.studentProfile) return { error: "Student not found" };
+
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: assignmentId }
+    });
+
+    if (!assignment) return { error: "Assignment not found" };
+
+    // Validate answer (case insensitive and trimmed)
+    if ((assignment as any).validationAnswer) {
+      const normalizedProvided = providedAnswer.trim().toLowerCase();
+      const normalizedCorrect = (assignment as any).validationAnswer.trim().toLowerCase();
+
+      if (normalizedProvided !== normalizedCorrect) {
+        return { error: "Incorrect validation answer. Please try again." };
+      }
+    }
+
+    // Record submission
+    const submission = await (prisma as any).assignmentSubmission.upsert({
+      where: {
+        assignmentId_studentId: {
+          assignmentId: assignmentId,
+          studentId: user.studentProfile.id
+        }
+      },
+      update: {
+        submittedAt: new Date(),
+        status: "SUBMITTED"
+      },
+      create: {
+        assignmentId: assignmentId,
+        studentId: user.studentProfile.id,
+        status: "SUBMITTED"
+      }
+    });
+
+    return { success: true, submission };
+  } catch (error) {
+    console.error("Failed to submit assignment", error);
+    return { error: "Failed to submit assignment. Please try again." };
   }
 }

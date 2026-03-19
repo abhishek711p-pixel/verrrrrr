@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getCommunityPosts } from "@/actions/teacher";
+import { getCommunityPosts, getTeacherBatches } from "@/actions/teacher";
 import { Button } from "@/components/ui/button";
 import { Presentation, Video, LogOut, Settings, MessageSquare } from "lucide-react";
 import Link from "next/link";
@@ -16,6 +16,7 @@ export default async function TeacherCommunityPage() {
   }
 
   const posts = await getCommunityPosts(session.user.email);
+  const batches = await getTeacherBatches(session.user.email);
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -27,7 +28,7 @@ export default async function TeacherCommunityPage() {
           <p className="text-slate-500 dark:text-slate-400 mt-1">Keep your students engaged with updates and schedules.</p>
         </header>
 
-        <CommunityManager initialPosts={posts} email={session.user.email} />
+        <CommunityManager initialPosts={posts} email={session.user.email} batches={batches} />
       </main>
     </div>
   );

@@ -3,8 +3,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FileText, Send, Calendar, Clock, BookOpen } from "lucide-react";
-import { createAssignment } from "@/actions/teacher";
+import { FileText, Send, Calendar, Clock, BookOpen, Trash2, CheckCircle, Users } from "lucide-react";
+import { createAssignment, deleteAssignment } from "@/actions/teacher";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 export function AssignmentManager({ initialBatches, email }: { initialBatches: any[], email: string }) {
   const [batches, setBatches] = useState(initialBatches);
@@ -13,6 +20,37 @@ export function AssignmentManager({ initialBatches, email }: { initialBatches: a
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [validationQuestion, setValidationQuestion] = useState("");
+  const [validationAnswer, setValidationAnswer] = useState("");
+  const [selectedAssignmentForSubmissions, setSelectedAssignmentForSubmissions] = useState<any>(null);
+  const [isSubmissionsOpen, setIsSubmissionsOpen] = useState(false);
+
+  const handleDeleteAssignment = async (batchId: string, assignmentId: string) => {
+    if (!confirm("Are you sure you want to delete this assignment?")) return;
+    
+    try {
+      const result = await deleteAssignment(email, assignmentId);
+      if (result.success) {
+        setBatches(prev => prev.map(batch => {
+          if (batch.id === batchId) {
+            return {
+              ...batch,
+              assignments: batch.assignments.filter((a: any) => a.id !== assignmentId)
+            };
+          }
+          return batch;
+        }));
+      } else {
+        alert(result.error || "Failed to delete assignment");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("An error occurred while deleting the assignment");
+    }
+  };
 
   const handleCreateAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +59,7 @@ export function AssignmentManager({ initialBatches, email }: { initialBatches: a
     setIsSubmitting(true);
     const dateObj = dueDate ? new Date(dueDate).toISOString() : null;
     
-    const result = await createAssignment(email, title, description, selectedBatchId, dateObj);
+    const result = await createAssignment(email, title, description, selectedBatchId, dateObj, fileUrl, validationQuestion, validationAnswer);
     
     if (result.success && result.assignment) {
       // Update local state to show new assignment instantly
@@ -39,14 +77,52 @@ export function AssignmentManager({ initialBatches, email }: { initialBatches: a
       setTitle("");
       setDescription("");
       setDueDate("");
+      setFileUrl(null);
+      setFileName(null);
+      setValidationQuestion("");
+      setValidationAnswer("");
     } else {
       alert(result?.error || "Failed to assign note/homework.");
     }
     setIsSubmitting(false);
   };
 
-  const handleFileUpload = () => {
-    alert("File uploads will be supported once the website is live. For now, you can write the assignment in the description.");
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      console.log("Starting upload to /api/upload/assignment...");
+      const response = await fetch("/api/upload/assignment", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Upload server error:", response.status, errorText);
+        alert(`Upload failed (${response.status}): ${errorText || "Internal Server Error"}`);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setFileUrl(data.url);
+        setFileName(data.name);
+      } else {
+        alert(data.error || "Upload failed");
+      }
+    } catch (error: any) {
+      console.error("Critical upload fetch error:", error);
+      alert(`Critical error: ${error.message}. Check if the server is running on port 3000.`);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -110,18 +186,73 @@ export function AssignmentManager({ initialBatches, email }: { initialBatches: a
                 </div>
               </div>
 
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="w-full border-dashed"
-                onClick={handleFileUpload}
-              >
-                <FileText className="w-4 h-4 mr-2" /> Attach File (PDF/Docs)
-              </Button>
+              <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-4">
+                <label className="text-sm font-bold text-indigo-600 dark:text-indigo-400">Submission Validation</label>
+                <div className="space-y-3 p-3 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-800">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Validation Question</label>
+                    <input
+                      type="text"
+                      value={validationQuestion}
+                      onChange={(e) => setValidationQuestion(e.target.value)}
+                      placeholder="e.g. What is the value of G?"
+                      className="w-full p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Correct Answer</label>
+                    <input
+                      type="text"
+                      value={validationAnswer}
+                      onChange={(e) => setValidationAnswer(e.target.value)}
+                      placeholder="e.g. 6.67"
+                      className="w-full p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-tight">Students must answer this correctly before they can submit their assignment.</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <input 
+                  type="file" 
+                  id="assignment-file" 
+                  className="hidden" 
+                  onChange={handleFileChange}
+                />
+                
+                {fileUrl ? (
+                  <div className="flex items-center justify-between p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 text-sm">
+                    <div className="flex items-center text-indigo-700 dark:text-indigo-300 truncate mr-2">
+                      <FileText className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span className="truncate max-w-[150px]">{fileName}</span>
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => { setFileUrl(null); setFileName(null); }}
+                      className="h-6 w-6 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full border-dashed"
+                    disabled={isUploading}
+                    onClick={() => document.getElementById('assignment-file')?.click()}
+                  >
+                    {isUploading ? "Uploading..." : <><FileText className="w-4 h-4 mr-2" /> Attach File (PDF/Docs)</>}
+                  </Button>
+                )}
+              </div>
 
               <Button 
                 type="submit" 
-                disabled={isSubmitting || !title || !selectedBatchId}
+                disabled={isSubmitting || isUploading || !title || !selectedBatchId}
                 className="w-full bg-orange-600 hover:bg-orange-700 text-white cursor-pointer"
               >
                 {isSubmitting ? "Assigning..." : <><Send className="w-4 h-4 mr-2" /> Distribute Assignment</>}
@@ -156,12 +287,47 @@ export function AssignmentManager({ initialBatches, email }: { initialBatches: a
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500"></div>
                       <CardContent className="p-5 pl-6">
                         <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-bold text-slate-900 dark:text-white text-lg">{assignment.title}</h4>
-                          <span className="text-xs text-slate-400">{new Date(assignment.createdAt).toLocaleDateString()}</span>
+                          <div>
+                            <h4 className="font-bold text-slate-900 dark:text-white text-lg">{assignment.title}</h4>
+                            <span className="text-xs text-slate-400">{new Date(assignment.createdAt).toLocaleDateString()}</span>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 h-8 w-8"
+                            onClick={() => handleDeleteAssignment(batch.id, assignment.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                         {assignment.description && (
                           <p className="text-slate-700 dark:text-slate-300 text-sm mb-4 whitespace-pre-wrap">{assignment.description}</p>
                         )}
+                        {assignment.fileUrl && (
+                          <div className="mb-4">
+                            <a 
+                              href={assignment.fileUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-lg"
+                            >
+                              <FileText className="w-4 h-4 mr-2" />
+                              View Attachment
+                            </a>
+                          </div>
+                        )}
+
+                        {assignment.validationQuestion && (
+                          <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800 rounded-xl">
+                            <h5 className="text-[10px] font-bold uppercase tracking-widest text-amber-600 mb-1">Validation Quiz</h5>
+                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 italic">" {assignment.validationQuestion} "</p>
+                            <div className="mt-2 flex items-center text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                              Correct: {assignment.validationAnswer}
+                            </div>
+                          </div>
+                        )}
+
                         <div className="flex items-center justify-between mt-4 text-xs font-medium">
                           {assignment.dueDate ? (
                             <div className="flex items-center text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 px-2 py-1 rounded-md">
@@ -173,7 +339,17 @@ export function AssignmentManager({ initialBatches, email }: { initialBatches: a
                               No due date
                             </div>
                           )}
-                          <Button variant="ghost" size="sm" className="h-7 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700">View Submissions</Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 font-bold"
+                            onClick={() => {
+                              setSelectedAssignmentForSubmissions(assignment);
+                              setIsSubmissionsOpen(true);
+                            }}
+                          >
+                            View Submissions ({assignment.assignmentSubmissions?.length || 0})
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -184,6 +360,64 @@ export function AssignmentManager({ initialBatches, email }: { initialBatches: a
           ))
         )}
       </div>
+
+      {/* ── SUBMISSIONS MODAL ── */}
+      <Dialog open={isSubmissionsOpen} onOpenChange={setIsSubmissionsOpen}>
+        <DialogContent className="max-w-md bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Users className="w-5 h-5 text-indigo-600" />
+              Submissions
+            </DialogTitle>
+            <DialogDescription className="text-slate-500 dark:text-slate-400">
+              {selectedAssignmentForSubmissions?.title}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2 space-y-3">
+            {(!selectedAssignmentForSubmissions?.assignmentSubmissions || selectedAssignmentForSubmissions.assignmentSubmissions.length === 0) ? (
+              <div className="py-12 text-center">
+                <div className="inline-flex p-3 rounded-full bg-slate-100 dark:bg-slate-900 mb-3">
+                  <BookOpen className="w-6 h-6 text-slate-400" />
+                </div>
+                <p className="text-slate-500 dark:text-slate-400 text-sm italic">No submissions yet.</p>
+              </div>
+            ) : (
+              selectedAssignmentForSubmissions.assignmentSubmissions.map((submission: any) => (
+                <div key={submission.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+                      {submission.student?.user?.name?.[0] || 'S'}
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-bold text-slate-900 dark:text-white">
+                        {submission.student?.user?.name || 'Anonymous Student'}
+                      </h5>
+                      <p className="text-[10px] text-slate-500">
+                        Submitted on {new Date(submission.submittedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase">
+                    <CheckCircle className="w-3 h-3" />
+                    Verified
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          <div className="mt-6 flex justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsSubmissionsOpen(false)}
+              className="px-8 border-slate-200 dark:border-slate-800"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -2,10 +2,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getStudentCourses } from "@/actions/student";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Video, LogOut, Award, PlayCircle, Layers, Calendar, Compass } from "lucide-react";
+import { Video, PlayCircle, Layers, Calendar, Compass } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { StudentSidebar } from "../StudentSidebar";
 
 export default async function StudentCoursesPage() {
   const session = await getServerSession(authOptions);
@@ -18,38 +19,7 @@ export default async function StudentCoursesPage() {
   
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 hidden md:block">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-2 font-bold text-xl text-indigo-600 dark:text-indigo-400">
-            <BookOpen className="h-6 w-6" />
-            <span>Student Portal</span>
-          </div>
-        </div>
-        <nav className="p-4 space-y-2">
-          <Link href="/student" passHref>
-            <Button variant="ghost" className="w-full justify-start hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer">
-              <BookOpen className="mr-2 h-4 w-4" /> Dashboard
-            </Button>
-          </Link>
-          <Link href="/student/courses" passHref>
-            <Button variant="secondary" className="w-full justify-start bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-800/50">
-              <Video className="mr-2 h-4 w-4" /> My Courses
-            </Button>
-          </Link>
-          <Link href="/student/exams" passHref>
-            <Button variant="ghost" className="w-full justify-start hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer">
-              <Award className="mr-2 h-4 w-4" /> Test Scores
-            </Button>
-          </Link>
-          <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800">
-            <Link href="/student/browse" passHref>
-              <Button variant="ghost" className="w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30">
-                <Compass className="mr-2 h-4 w-4" /> Browse Catalog
-              </Button>
-            </Link>
-          </div>
-        </nav>
-      </aside>
+      <StudentSidebar />
 
       <main className="flex-1 p-8 overflow-y-auto">
         <header className="flex justify-between items-center mb-8">
@@ -57,11 +27,6 @@ export default async function StudentCoursesPage() {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">My Learning Queue</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Pick up where you left off and finish your courses.</p>
           </div>
-          <form action="/api/auth/signout" method="POST">
-             <Button variant="outline" type="submit" className="border-slate-200 dark:border-slate-800 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400">
-               <LogOut className="mr-2 h-4 w-4" /> Sign Out
-             </Button>
-          </form>
         </header>
 
         {courses.length > 0 ? (
@@ -119,11 +84,6 @@ export default async function StudentCoursesPage() {
             <Video className="w-16 h-16 mb-4 text-slate-300 dark:text-slate-700" />
             <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">No courses found</h3>
             <p className="max-w-md text-center mb-6">It looks like the teachers you are subscribed to haven't uploaded any courses yet, or you don't have active subscriptions.</p>
-            <Link href="/student/browse" passHref>
-              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow-md transition-all">
-                <Compass className="mr-2 h-4 w-4" /> Browse Teachers
-              </Button>
-            </Link>
           </div>
         )}
       </main>

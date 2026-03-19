@@ -1,6 +1,6 @@
-// ... existing code ...
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import prisma from "@/lib/prisma";
 
 declare module "next-auth" {
   interface Session {
@@ -23,10 +23,8 @@ declare module "next-auth" {
 }
 
 export const authOptions: NextAuthOptions = {
-// ... existing code ...
   providers: [
     CredentialsProvider({
-// ... existing code ...
       name: "Credentials",
       credentials: {
         name: { label: "Name", type: "text" },
@@ -36,51 +34,39 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          throw new Error("Missing credentials");
         }
 
         try {
-          console.log("NextAuth: Attempting login for", credentials.email, "with name", credentials.name);
-          const res = await fetch("http://localhost:8080/api/auth/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              name: credentials.name,
-              email: credentials.email,
-              password: credentials.password,
-              role: credentials.role,
-            }),
-            cache: "no-store",
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
           });
-          
-          console.log("NextAuth: Backend response status:", res.status);
-          if (!res.ok) {
-            const errorText = await res.text();
-            console.error("NextAuth: Backend error:", errorText);
-            return null;
+
+          if (!user) {
+            console.log("NextAuth: Login failed - User not found:", credentials.email);
+            throw new Error("INVALID_CREDENTIALS");
           }
 
-          const data = await res.json();
-          console.log("NextAuth: Backend success!", data.user.email);
-          if (data.user) {
-            return {
-              id: data.user.id,
-              email: data.user.email,
-              name: data.user.name,
-              role: data.user.role,
-            };
+          if (user.password !== credentials.password) {
+            console.log("NextAuth: Login failed - Invalid password for:", credentials.email);
+            throw new Error("INVALID_CREDENTIALS");
           }
-        } catch (error) {
-          console.error("NextAuth: Exception during fetch:", error);
-          return null;
+
+          console.log("NextAuth: Login successful for", user.email);
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          };
+        } catch (error: any) {
+          console.error("NextAuth: Exception during authorization:", error.message);
+          throw error; // Rethrow to propagate to the client
         }
-        
-        return null;
       }
     })
   ],
+  secret: process.env.NEXTAUTH_SECRET || "my_super_secret_jwt_key",
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -99,3 +85,4 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login', 
   }
 }
+

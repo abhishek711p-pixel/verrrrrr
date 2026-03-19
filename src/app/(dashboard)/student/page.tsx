@@ -2,11 +2,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { ensureUserExists, getUserProfile } from "@/actions/user";
-import { getStudentDashboardData } from "@/actions/student";
+import { getStudentDashboardData, getStudentBatches } from "@/actions/student";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BookOpen, Video, LogOut, Award, TrendingUp, Clock, CheckCircle2 } from "lucide-react";
+import { BookOpen, Video, Award, TrendingUp, Clock, CheckCircle2, GraduationCap } from "lucide-react";
 import Link from "next/link";
+import { StudentSidebar } from "./StudentSidebar";
 
 export default async function StudentDashboard() {
   const session = await getServerSession(authOptions);
@@ -19,110 +20,73 @@ export default async function StudentDashboard() {
   await ensureUserExists(session.user.email, "STUDENT");
   const userData = await getUserProfile(session.user.email);
   const dashboardData = await getStudentDashboardData(session.user.email);
+  const studentBatches = await getStudentBatches(session.user.email);
   
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 hidden md:block">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-2 font-bold text-xl text-indigo-600 dark:text-indigo-400">
-            <BookOpen className="h-6 w-6" />
-            <span>Student Portal</span>
-          </div>
-        </div>
-        <nav className="p-4 space-y-2">
-          <Link href="/student" passHref>
-            <Button variant="secondary" className="w-full justify-start bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-800/50">
-              <BookOpen className="mr-2 h-4 w-4" /> Dashboard
-            </Button>
-          </Link>
-          <Link href="/student/courses" passHref>
-            <Button variant="ghost" className="w-full justify-start hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer">
-              <Video className="mr-2 h-4 w-4" /> My Courses
-            </Button>
-          </Link>
-          <Link href="/student/exams" passHref>
-            <Button variant="ghost" className="w-full justify-start hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer">
-              <Award className="mr-2 h-4 w-4" /> Test Scores
-            </Button>
-          </Link>
-        </nav>
-      </aside>
+      <StudentSidebar />
 
       <main className="flex-1 p-8 overflow-y-auto">
         <header className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Welcome back, {userData?.name || "Student"}!</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+              Welcome back, {userData?.name && userData.name !== "undefined" ? userData.name : session.user.email?.split('@')[0]}!
+            </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Here's an overview of your learning progress.</p>
           </div>
-          <form action="/api/auth/signout" method="POST">
-             <Button variant="outline" type="submit" className="border-slate-200 dark:border-slate-800 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400">
-               <LogOut className="mr-2 h-4 w-4" /> Sign Out
-             </Button>
-          </form>
         </header>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card className="border-indigo-100 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">Active Subscriptions</CardTitle>
-              <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">{dashboardData?.activeSubscriptions || 0}</div>
-              <p className="text-xs text-emerald-500 font-medium flex items-center mt-1">
-                <TrendingUp className="w-3 h-3 mr-1" /> Active Trial
-              </p>
-            </CardContent>
-          </Card>
 
-          <Card className="border-indigo-100 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">Available Courses</CardTitle>
-              <div className="w-8 h-8 rounded-full bg-cyan-100 dark:bg-cyan-900/40 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
-                <Video className="w-4 h-4" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">{dashboardData?.totalCourses || 0}</div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Through your subscriptions
-              </p>
-            </CardContent>
-          </Card>
+        {/* My Enrolled Batches Section */}
+        {studentBatches.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white mb-4 flex items-center">
+              <GraduationCap className="w-5 h-5 mr-2 text-indigo-600 dark:text-indigo-400" />
+              My Learning Batches
+            </h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {studentBatches.map((batch: any) => (
+                <Card key={batch.id} className="border-indigo-100 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm transition-all hover:shadow-md flex flex-col">
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg text-indigo-700 dark:text-indigo-400">{batch.name}</CardTitle>
+                      {batch.messages?.length > 0 && (
+                        <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" title="New Message" />
+                      )}
+                    </div>
+                    <CardDescription>{batch.teacher?.user?.name ? `Instructor: ${batch.teacher.user.name}` : 'Assigned Batch'}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4">
+                      {batch.description || 'No description provided for this batch.'}
+                    </p>
+                    
+                    {batch.assignments?.length > 0 && (
+                      <div className="mb-4 p-2 rounded bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50">
+                        <p className="text-[10px] uppercase font-bold text-indigo-500 mb-1">Latest Assignment</p>
+                        <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{batch.assignments[0].title}</p>
+                      </div>
+                    )}
 
-          <Card className="border-indigo-100 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">Tests Completed</CardTitle>
-              <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                <Clock className="w-4 h-4" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">{dashboardData?.totalTests || 0}</div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Total assessments taken
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-indigo-100 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm transition-all hover:shadow-md relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-500/10 to-transparent rounded-bl-full pointer-events-none" />
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">Average Score</CardTitle>
-              <div className="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/40 flex items-center justify-center text-rose-600 dark:text-rose-400">
-                <Award className="w-4 h-4" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-indigo-700 dark:text-indigo-400">{dashboardData?.averageScore || 0}%</div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Across all test submissions
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+                    <div className="flex items-center justify-between text-xs font-medium text-slate-500">
+                      <div className="flex items-center">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Updated {new Date(batch.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </CardContent>
+                  <div className="p-4 pt-0">
+                    <Link href={`/student/batches/${batch.id}`}>
+                      <Button variant="outline" size="sm" className="w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30">
+                        View Batch Details
+                      </Button>
+                    </Link>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Recent Courses Preview */}
