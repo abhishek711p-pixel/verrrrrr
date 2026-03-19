@@ -77,7 +77,11 @@ export default async function TeacherDashboard() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="flex min-h-screen bg-white dark:bg-slate-950 selection:bg-indigo-500/30 overflow-hidden relative">
+      {/* Background Decor */}
+      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-br from-indigo-500/10 to-transparent blur-3xl mix-blend-multiply pointer-events-none -z-10" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-tl from-cyan-500/10 to-transparent blur-3xl mix-blend-multiply pointer-events-none -z-10" />
+
       <TeacherSidebar activeTab="dashboard" />
 
       <main className="flex-1 p-8 space-y-8 overflow-auto">

@@ -30,17 +30,12 @@ export async function ensureUserExists(email: string, role: "STUDENT" | "TEACHER
     });
     
     if (!user) {
-      // Access is restricted to pre-registered users only
-      console.warn(`ensureUserExists: Unauthorized access attempt by ${email}`);
-      return null;
-    }
-
-    // Ensure profile exists if user was pre-registered but profile was not created
-    const profile = role === 'STUDENT' ? user.studentProfile : user.teacherProfile;
-    if (!profile) {
-      user = await prisma.user.update({
-        where: { id: user.id },
+      // Create user on the fly if it's "open for all"
+      user = await prisma.user.create({
         data: {
+          email,
+          role,
+          name: email.split('@')[0],
           ...(role === 'STUDENT' 
             ? { studentProfile: { create: {} } }
             : { teacherProfile: { create: {} } }
@@ -51,6 +46,68 @@ export async function ensureUserExists(email: string, role: "STUDENT" | "TEACHER
           teacherProfile: true
         }
       });
+
+      // DYNAMIC BATCH AUTO-ENROLLMENT
+      if (role === 'STUDENT' && user.studentProfile) {
+        const studentId = user.studentProfile.id;
+        const allBatches = await prisma.batch.findMany();
+        
+        const batchesToJoin = allBatches.filter(b => {
+          const batchNameLower = b.name.toLowerCase();
+          const emailLower = email.toLowerCase();
+          
+          // Match 'sot25' keyword
+          if (batchNameLower.includes('sot25') && emailLower.includes('sot25')) return true;
+          
+          // Match Global batches
+          if (batchNameLower.includes('maths') || batchNameLower.includes('english')) return true;
+          
+          return false;
+        });
+
+        if (batchesToJoin.length > 0) {
+          await prisma.batchStudent.createMany({
+            data: batchesToJoin.map(b => ({
+              batchId: b.id,
+              studentId: studentId
+            })),
+            skipDuplicates: true
+          });
+        }
+      }
+
+      return user;
+    }
+
+    // DYNAMIC BATCH AUTO-ENROLLMENT (for anyone with no batches)
+    if (role === 'STUDENT' && user.studentProfile) {
+      const studentProfile = user.studentProfile;
+      // Check if they already have batches to avoid re-enrolling (or just use createMany skipDuplicates)
+      const existingBatchCount = await prisma.batchStudent.count({
+        where: { studentId: studentProfile.id }
+      });
+
+      if (existingBatchCount === 0) {
+        const allBatches = await prisma.batch.findMany();
+        const batchesToJoin = allBatches.filter(b => {
+          const batchNameLower = b.name.toLowerCase();
+          const emailLower = email.toLowerCase();
+          
+          if (batchNameLower.includes('sot25') && emailLower.includes('sot25')) return true;
+          if (batchNameLower.includes('maths') || batchNameLower.includes('english')) return true;
+          return false;
+        });
+
+        if (batchesToJoin.length > 0) {
+          await prisma.batchStudent.createMany({
+            data: batchesToJoin.map(b => ({
+              batchId: b.id,
+              studentId: studentProfile.id
+            })),
+            skipDuplicates: true
+          });
+        }
+      }
     }
     
     return user;

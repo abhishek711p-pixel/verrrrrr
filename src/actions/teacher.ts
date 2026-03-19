@@ -614,6 +614,37 @@ export async function addVideo(email: string, title: string, courseId: string, u
   }
 }
 
+export async function deleteVideo(email: string, videoId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { teacherProfile: true }
+    });
+
+    if (!user || !user.teacherProfile) return { error: "Teacher not found" };
+
+    // Find video and verify ownership through course
+    const video = await prisma.video.findUnique({
+      where: { id: videoId },
+      include: { course: true }
+    });
+
+    if (!video) return { error: "Video not found" };
+    if (video.course.teacherId !== user.teacherProfile.id) {
+      return { error: "Unauthorized: You do not own this course" };
+    }
+
+    await prisma.video.delete({
+      where: { id: videoId }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete video", error);
+    return { error: "Failed to delete video" };
+  }
+}
+
 export async function incrementVideoViews(videoId: string) {
   try {
     await prisma.video.update({

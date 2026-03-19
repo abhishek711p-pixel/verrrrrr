@@ -23,16 +23,20 @@ export default async function StudentDashboard() {
   const studentBatches = await getStudentBatches(session.user.email);
   
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="flex min-h-screen bg-white dark:bg-slate-950 selection:bg-indigo-500/30 overflow-hidden relative">
+      {/* Background Decor */}
+      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-br from-indigo-500/10 to-transparent blur-3xl mix-blend-multiply pointer-events-none -z-10" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-tl from-cyan-500/10 to-transparent blur-3xl mix-blend-multiply pointer-events-none -z-10" />
+      
       <StudentSidebar />
 
       <main className="flex-1 p-8 overflow-y-auto">
-        <header className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+        <header className="flex justify-between items-center mb-10">
+          <div className="animate-in fade-in slide-in-from-left-4 duration-700">
+            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-slate-400">
               Welcome back, {userData?.name && userData.name !== "undefined" ? userData.name : session.user.email?.split('@')[0]}!
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Here's an overview of your learning progress.</p>
+            <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg font-medium">Keep up the great work! Here&apos;s your progress.</p>
           </div>
         </header>
 
@@ -46,7 +50,8 @@ export default async function StudentDashboard() {
             </h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {studentBatches.map((batch: any) => (
-                <Card key={batch.id} className="border-indigo-100 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm transition-all hover:shadow-md flex flex-col">
+                <Card key={batch.id} className="group relative overflow-hidden border-slate-200/50 bg-white/50 dark:bg-slate-900/50 dark:border-slate-800/50 backdrop-blur-xl shadow-lg transition-all hover:shadow-indigo-500/10 hover:-translate-y-1 flex flex-col">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-cyan-400 opacity-50 group-hover:opacity-100 transition-opacity" />
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-lg text-indigo-700 dark:text-indigo-400">{batch.name}</CardTitle>
@@ -77,7 +82,7 @@ export default async function StudentDashboard() {
                   </CardContent>
                   <div className="p-4 pt-0">
                     <Link href={`/student/batches/${batch.id}`}>
-                      <Button variant="outline" size="sm" className="w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30">
+                      <Button variant="outline" size="sm" className="w-full rounded-xl border-indigo-200/50 text-indigo-600 hover:bg-indigo-600 hover:text-white dark:border-indigo-800/50 dark:text-indigo-400 dark:hover:bg-indigo-600 dark:hover:text-white transition-all font-bold">
                         View Batch Details
                       </Button>
                     </Link>
@@ -134,17 +139,17 @@ export default async function StudentDashboard() {
                   {dashboardData.recentScores.map((test: any) => {
                     const percentage = Math.round((test.score / test.totalMarks) * 100);
                     return (
-                      <div key={test.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                      <div key={test.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-200/50 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm group hover:bg-white/50 dark:hover:bg-slate-900/50 transition-all">
                         <div className="flex items-center">
-                          <div className={`w-2 h-12 rounded-full mr-4 ${percentage >= 80 ? 'bg-emerald-500' : percentage >= 60 ? 'bg-amber-500' : 'bg-red-500'}`} />
+                          <div className={`w-3 h-12 rounded-full mr-4 shadow-sm ${percentage >= 80 ? 'bg-emerald-500' : percentage >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`} />
                           <div>
-                            <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{test.testName}</h4>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{new Date(test.takenAt).toLocaleDateString()}</p>
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">{test.testName}</h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{new Date(test.takenAt).toLocaleDateString()}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-bold text-slate-900 dark:text-white">{percentage}%</div>
-                          <div className="text-xs text-slate-500">{test.score} / {test.totalMarks}</div>
+                          <div className={`text-xl font-black ${percentage >= 80 ? 'text-emerald-600' : percentage >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>{percentage}%</div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{test.score} / {test.totalMarks} Marks</div>
                         </div>
                       </div>
                     );

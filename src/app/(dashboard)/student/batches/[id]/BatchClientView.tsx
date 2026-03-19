@@ -14,27 +14,33 @@ import {
   X,
   Eye,
   FileText,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StudentBatchMessages } from "./StudentBatchMessages";
-import { incrementVideoViews } from "@/actions/teacher";
+import { incrementVideoViews, deleteVideo } from "@/actions/teacher";
 import { submitAssignment } from "@/actions/student";
+import { useRouter } from "next/navigation";
 
 interface BatchClientViewProps {
   batch: any;
   studentEmail: string;
   studentId: string;
+  isTeacher?: boolean;
 }
 
 type ViewMode = "selection" | "attendance" | "content" | "communications" | "assignments";
 
-export function BatchClientView({ batch, studentEmail, studentId }: BatchClientViewProps) {
+export function BatchClientView({ batch, studentEmail, studentId, isTeacher }: BatchClientViewProps) {
+  const router = useRouter();
   const [viewMode, setViewMode] = useState<ViewMode>("selection");
   const [activeVideo, setActiveVideo] = useState<any | null>(null);
   const [viewedIds, setViewedIds] = useState<Set<string>>(new Set());
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [deletingVideoId, setDeletingVideoId] = useState<string | null>(null);
   
   // ── Submission state ────────────────────────────────────────────────────
   const [submittingAssignment, setSubmittingAssignment] = useState<any | null>(null);
@@ -89,6 +95,21 @@ export function BatchClientView({ batch, studentEmail, studentId }: BatchClientV
   const closeVideo = () => {
     videoRef.current?.pause();
     setActiveVideo(null);
+  };
+
+  const handleDeleteVideo = async (e: React.MouseEvent, videoId: string, videoTitle: string) => {
+    e.stopPropagation();
+    if (!confirm(`Are you sure you want to delete "${videoTitle}"? This cannot be undone.`)) return;
+    
+    setDeletingVideoId(videoId);
+    const res = await deleteVideo(studentEmail, videoId);
+    setDeletingVideoId(null);
+
+    if (res.success) {
+      router.refresh();
+    } else {
+      alert(res.error || "Failed to delete video.");
+    }
   };
 
   const handleAssignmentSubmit = async () => {
@@ -496,6 +517,21 @@ export function BatchClientView({ batch, studentEmail, studentId }: BatchClientV
                     <div className="absolute top-3 left-3 px-2 py-1 bg-emerald-500 text-white text-[10px] font-bold rounded z-10 flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" /> Watched
                     </div>
+                  )}
+
+                  {/* Teacher delete option */}
+                  {isTeacher && (
+                    <button
+                      onClick={(e) => handleDeleteVideo(e, video.id, video.title)}
+                      disabled={deletingVideoId === video.id}
+                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center z-10 transition-colors backdrop-blur-sm group/del"
+                    >
+                      {deletingVideoId === video.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4 group-hover/del:scale-110 transition-transform" />
+                      )}
+                    </button>
                   )}
                 </div>
 

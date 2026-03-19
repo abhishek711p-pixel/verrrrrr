@@ -8,8 +8,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "PWIOI EdTech • Premium Learning",
-  description: "Enterprise-grade educational management platform.",
+  title: "PWIOI | World-Class Direct-to-Student Learning",
+  description: "Join the elite educational community. Learn directly from industry experts in our premium, glassmorphism-inspired digital environment.",
 };
 
 export default function RootLayout({

@@ -30,6 +30,7 @@ export default async function StudentBatchPage({ params }: { params: Promise<{ i
   }
 
   const studentProfileId = (batch as any).students?.[0]?.studentId || "";
+  const isTeacher = session.user.role === "TEACHER";
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 p-6 md:p-12">
@@ -45,6 +46,7 @@ export default async function StudentBatchPage({ params }: { params: Promise<{ i
           batch={batch} 
           studentEmail={session.user.email} 
           studentId={studentProfileId} 
+          isTeacher={isTeacher}
         />
       </div>
     </div>

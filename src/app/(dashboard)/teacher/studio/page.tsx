@@ -8,6 +8,7 @@ import { Presentation, Video, LogOut, Settings, BarChart, Eye, Calendar, Clock, 
 import Link from "next/link";
 import { UploadButton } from "../upload-button";
 import { TeacherSidebar } from "../teacher-sidebar";
+import { DeleteVideoButton } from "./delete-video-button";
 
 export default async function TeacherContentStudio() {
   const session = await getServerSession(authOptions);
@@ -102,6 +103,7 @@ export default async function TeacherContentStudio() {
                       <th className="px-6 py-3 font-medium">Course</th>
                       <th className="px-6 py-3 font-medium text-right">Total Views</th>
                       <th className="px-6 py-3 font-medium text-right">Upload Date</th>
+                      <th className="px-6 py-3 font-medium text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -124,6 +126,9 @@ export default async function TeacherContentStudio() {
                         <td className="px-6 py-2 md:py-4 text-slate-500 md:text-right">
                            <span className="md:hidden font-semibold mr-2 text-slate-600">Uploaded:</span>
                            {new Date(video.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-2 md:py-4 text-center">
+                          <DeleteVideoButton videoId={video.id} videoTitle={video.title} userEmail={session.user.email!} />
                         </td>
                       </tr>
                     ))}

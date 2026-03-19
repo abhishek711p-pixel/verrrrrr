@@ -4,44 +4,44 @@ import Link from "next/link";
 
 export function TeacherSidebar({ activeTab = "dashboard" }: { activeTab?: "dashboard" | "studio" | "settings" | "community" | "creativity" }) {
   return (
-    <aside className="w-64 bg-slate-900 text-slate-300 hidden md:flex flex-col">
-      <div className="p-6 border-b border-slate-800 bg-slate-950">
-        <div className="flex items-center gap-2 font-bold text-xl text-cyan-400">
-          <Presentation className="h-6 w-6" />
-          <span>Teacher Portal</span>
-        </div>
+    <aside className="w-64 bg-slate-950/80 backdrop-blur-xl border-r border-slate-800/50 hidden md:flex flex-col relative z-20">
+      <div className="p-8 border-b border-slate-800/50">
+        <Link href="/" className="flex items-center gap-3 font-black text-2xl text-cyan-400 group">
+          <Presentation className="h-8 w-8 transition-transform group-hover:scale-110" />
+          <span className="tracking-tighter">TEACHER</span>
+        </Link>
       </div>
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-6 space-y-2">
         <Link href="/teacher" passHref>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start cursor-pointer hover:bg-slate-800 hover:text-white ${activeTab === 'dashboard' ? 'bg-slate-800 text-cyan-400' : ''}`}
+            className={`w-full justify-start h-11 px-4 rounded-xl transition-all duration-200 ${activeTab === 'dashboard' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-700' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-900/30 font-medium'}`}
           >
-            <Presentation className="mr-2 h-4 w-4" /> Dashboard
+            <Presentation className={`mr-3 h-5 w-5 ${activeTab === 'dashboard' ? 'animate-pulse' : ''}`} /> Dashboard
           </Button>
         </Link>
         <Link href="/teacher/studio" passHref>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start cursor-pointer hover:bg-slate-800 hover:text-white ${activeTab === 'studio' ? 'bg-slate-800 text-cyan-400' : ''}`}
+            className={`w-full justify-start h-11 px-4 rounded-xl transition-all duration-200 ${activeTab === 'studio' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-700' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-900/30 font-medium'}`}
           >
-            <Video className="mr-2 h-4 w-4" /> Content Studio
+            <Video className={`mr-3 h-5 w-5 ${activeTab === 'studio' ? 'animate-pulse' : ''}`} /> Content Studio
           </Button>
         </Link>
         <Link href="/teacher/community" passHref>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start cursor-pointer hover:bg-slate-800 hover:text-white ${activeTab === 'community' ? 'bg-slate-800 text-cyan-400' : ''}`}
+            className={`w-full justify-start h-11 px-4 rounded-xl transition-all duration-200 ${activeTab === 'community' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-700' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-900/30 font-medium'}`}
           >
-            <MessageSquare className="mr-2 h-4 w-4" /> Community Posts
+            <MessageSquare className={`mr-3 h-5 w-5 ${activeTab === 'community' ? 'animate-pulse' : ''}`} /> Community Posts
           </Button>
         </Link>
         <Link href="/teacher/creativity" passHref>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start cursor-pointer hover:bg-slate-800 hover:text-white ${activeTab === 'creativity' ? 'bg-slate-800 text-cyan-400' : ''}`}
+            className={`w-full justify-start h-11 px-4 rounded-xl transition-all duration-200 ${activeTab === 'creativity' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-700' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-900/30 font-medium'}`}
           >
-            <Lightbulb className="mr-2 h-4 w-4" /> Teacher Creativity
+            <Lightbulb className={`mr-3 h-5 w-5 ${activeTab === 'creativity' ? 'animate-pulse' : ''}`} /> Teacher Creativity
           </Button>
         </Link>
       </nav>
