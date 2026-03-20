@@ -25,7 +25,7 @@ export default function LandingPage() {
             </h1>
             
             <p className="mx-auto max-w-2xl text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-light">
-              A premium D2C educational platform connecting passionate students directly with expert teachers. Start your 3-day free trial today.
+              PWIOI is a premier destination for high-quality, industry-aligned education. We bridge the gap between academic learning and professional excellence with expert-led mentorship and a cutting-edge curriculum.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
