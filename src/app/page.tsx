@@ -92,48 +92,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Testimonials Section */}
-        <section className="w-full py-24 bg-slate-50 dark:bg-slate-950">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-6">
-              <div className="max-w-2xl">
-                <h2 className="text-3xl md:text-5xl font-bold text-slate-950 dark:text-white mb-6">Trusted by Thousands</h2>
-                <p className="text-slate-600 dark:text-slate-400 text-lg">Hear what our community of students and teachers has to say about their experience.</p>
-              </div>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-indigo-500 text-indigo-500" />)}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {[
-                {
-                  quote: "The direct connection with experts changed everything for me. I learned more in 3 months here than in a year of self-study.",
-                  author: "Sarah J.",
-                  role: "Postgrad Student"
-                },
-                {
-                  quote: "As a teacher, the tools provided to manage my batches and track student progress are world-class. It's so easy to focus on teaching.",
-                  author: "Dr. Robert M.",
-                  role: "Mathematics Lead"
-                }
-              ].map((testimonial, idx) => (
-                <div key={idx} className="p-10 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all">
-                  <p className="text-xl italic text-slate-800 dark:text-slate-200 mb-8 font-serif">"{testimonial.quote}"</p>
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold">
-                      {testimonial.author[0]}
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 dark:text-white">{testimonial.author}</div>
-                      <div className="text-sm text-slate-500 dark:text-slate-400">{testimonial.role}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* Final CTA Section */}
         <section className="w-full py-24 relative overflow-hidden">
