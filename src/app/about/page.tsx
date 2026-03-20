@@ -92,20 +92,21 @@ export default function AboutPage() {
               Leading the <span className="text-indigo-600">Revolution</span>
             </h2>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
-                { name: "John Doe", role: "CEO & Founder", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&auto=format&fit=crop&q=60" },
-                { name: "Jane Smith", role: "Head of Content", img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=60" },
-                { name: "Alex Johnson", role: "CTO", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=60" }
+                { name: "Syed Zabi Ulla", role: "BE CSE | Gold Badge | 8+ Years Exp", img: "/mentors/syed.png" },
+                { name: "Nitin M", role: "BE CSE, VTU Karnataka | 4+ Years Exp", img: "/mentors/nitin.png" },
+                { name: "Anisha Koshy", role: "MA English | 5+ Years Teaching Exp", img: "/mentors/anisha.png" },
+                { name: "Satya Sai Neerukonda", role: "PGDDS, MBA - XLRI | 5+ Years Exp", img: "/mentors/satya.png" }
               ].map((member, i) => (
                 <div key={i} className="text-center group">
                   <div className="relative mb-6 inline-block">
-                    <div className="h-64 w-64 rounded-[40px] overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl grayscale group-hover:grayscale-0 transition-all duration-500">
+                    <div className="h-48 w-48 mx-auto rounded-[32px] overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl group-hover:scale-105 transition-all duration-500">
                       <img src={member.img} alt={member.name} className="object-cover w-full h-full" />
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{member.name}</h3>
-                  <p className="text-indigo-600 dark:text-indigo-400 font-medium">{member.role}</p>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{member.name}</h3>
+                  <p className="text-indigo-600 dark:text-indigo-400 font-medium text-sm leading-relaxed px-4">{member.role}</p>
                 </div>
               ))}
             </div>
