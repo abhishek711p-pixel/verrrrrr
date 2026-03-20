@@ -25,7 +25,7 @@ export default function AboutPage() {
                 <span className="text-indigo-600 dark:text-indigo-400">Generation of Learning</span>
               </h2>
               <p className="text-lg text-slate-600 dark:text-slate-400 font-light leading-relaxed">
-                Founded in 2024, PWIOI was born out of a simple observation: the best teachers are often the hardest to reach. We built a platform that bridges this gap, creating a seamless, interactive, and premium learning environment.
+                Founded in 2023, PWIOI was born out of a simple observation: the best teachers are often the hardest to reach. We built a platform that bridges this gap, creating a seamless, interactive, and premium learning environment.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
                 <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm">
