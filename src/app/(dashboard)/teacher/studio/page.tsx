@@ -23,10 +23,7 @@ export default async function TeacherContentStudio() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <TeacherSidebar activeTab="studio" />
-
-      <main className="flex-1 p-8 overflow-y-auto">
+    <div className="p-4 md:p-8 animate-in fade-in duration-700">
         <header className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Content Studio</h1>
@@ -144,7 +141,6 @@ export default async function TeacherContentStudio() {
             )}
           </CardContent>
         </Card>
-      </main>
     </div>
   );
 }

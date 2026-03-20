@@ -34,10 +34,7 @@ export default async function StudentExamsPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <StudentSidebar />
-
-      <main className="flex-1 p-8 overflow-y-auto">
+    <div className="p-4 md:p-8 animate-in fade-in duration-700">
         <header className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Performance Analytics</h1>
@@ -159,7 +156,6 @@ export default async function StudentExamsPage() {
             )}
           </div>
         </Card>
-      </main>
     </div>
   );
 }

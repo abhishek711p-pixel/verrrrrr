@@ -14,10 +14,7 @@ export default async function TeacherScoresPage() {
   const batches = await getTeacherBatchStudents(session.user.email);
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <TeacherSidebar activeTab="creativity" />
-
-      <main className="flex-1 p-8 overflow-y-auto space-y-8">
+    <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-700">
         <header>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
             <Award className="w-8 h-8 text-indigo-600" />
@@ -36,7 +33,6 @@ export default async function TeacherScoresPage() {
         ) : (
           <TestScoreForm batches={batches} teacherEmail={session.user.email} />
         )}
-      </main>
     </div>
   );
 }

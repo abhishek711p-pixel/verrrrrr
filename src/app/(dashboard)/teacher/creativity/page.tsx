@@ -15,10 +15,7 @@ export default async function TeacherCreativityPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <TeacherSidebar activeTab="creativity" />
-
-      <main className="flex-1 p-8 overflow-y-auto">
+    <div className="p-4 md:p-8 animate-in fade-in duration-700">
         <header className="mb-8">
           <div className="flex items-center text-indigo-600 dark:text-indigo-400 mb-2">
              <Lightbulb className="w-6 h-6 mr-2" />
@@ -119,7 +116,6 @@ export default async function TeacherCreativityPage() {
           </Link>
 
         </div>
-      </main>
     </div>
   );
 }

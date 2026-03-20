@@ -23,14 +23,7 @@ export default async function StudentDashboard() {
   const studentBatches = await getStudentBatches(session.user.email);
   
   return (
-    <div className="flex min-h-screen bg-white dark:bg-slate-950 selection:bg-indigo-500/30 overflow-hidden relative">
-      {/* Background Decor */}
-      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-br from-indigo-500/10 to-transparent blur-3xl mix-blend-multiply pointer-events-none -z-10" />
-      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-tl from-cyan-500/10 to-transparent blur-3xl mix-blend-multiply pointer-events-none -z-10" />
-      
-      <StudentSidebar />
-
-      <main className="flex-1 p-8 overflow-y-auto">
+    <div className="p-4 md:p-8 animate-in fade-in duration-700">
         <header className="flex justify-between items-center mb-10">
           <div className="animate-in fade-in slide-in-from-left-4 duration-700">
             <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-slate-400">
@@ -166,8 +159,7 @@ export default async function StudentDashboard() {
               )}
             </CardContent>
           </Card>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

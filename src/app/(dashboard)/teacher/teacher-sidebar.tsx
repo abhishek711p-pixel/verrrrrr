@@ -1,8 +1,16 @@
-import { Button } from "@/components/ui/button";
-import { Presentation, Video, LogOut, Settings, MessageSquare, Lightbulb } from "lucide-react";
-import Link from "next/link";
+"use client";
 
-export function TeacherSidebar({ activeTab = "dashboard" }: { activeTab?: "dashboard" | "studio" | "settings" | "community" | "creativity" }) {
+import { Button } from "@/components/ui/button";
+import { Presentation, Video, LogOut, MessageSquare, Lightbulb } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+export function TeacherSidebar() {
+  const pathname = usePathname();
+  
+  const isActive = (href: string) => 
+    href === "/teacher" ? pathname === "/teacher" : pathname.startsWith(href);
+
   return (
     <aside className="w-64 bg-slate-950/80 backdrop-blur-xl border-r border-slate-800/50 hidden md:flex flex-col relative z-20">
       <div className="p-8 border-b border-slate-800/50">
@@ -15,33 +23,33 @@ export function TeacherSidebar({ activeTab = "dashboard" }: { activeTab?: "dashb
         <Link href="/teacher" passHref>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start h-11 px-4 rounded-xl transition-all duration-200 ${activeTab === 'dashboard' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-700' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-900/30 font-medium'}`}
+            className={`w-full justify-start h-11 px-4 rounded-xl transition-all duration-200 ${isActive('/teacher') ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-700' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-900/30 font-medium'}`}
           >
-            <Presentation className={`mr-3 h-5 w-5 ${activeTab === 'dashboard' ? 'animate-pulse' : ''}`} /> Dashboard
+            <Presentation className={`mr-3 h-5 w-5 ${isActive('/teacher') ? 'animate-pulse' : ''}`} /> Dashboard
           </Button>
         </Link>
         <Link href="/teacher/studio" passHref>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start h-11 px-4 rounded-xl transition-all duration-200 ${activeTab === 'studio' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-700' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-900/30 font-medium'}`}
+            className={`w-full justify-start h-11 px-4 rounded-xl transition-all duration-200 ${isActive('/teacher/studio') ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-700' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-900/30 font-medium'}`}
           >
-            <Video className={`mr-3 h-5 w-5 ${activeTab === 'studio' ? 'animate-pulse' : ''}`} /> Content Studio
+            <Video className={`mr-3 h-5 w-5 ${isActive('/teacher/studio') ? 'animate-pulse' : ''}`} /> Content Studio
           </Button>
         </Link>
         <Link href="/teacher/community" passHref>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start h-11 px-4 rounded-xl transition-all duration-200 ${activeTab === 'community' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-700' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-900/30 font-medium'}`}
+            className={`w-full justify-start h-11 px-4 rounded-xl transition-all duration-200 ${isActive('/teacher/community') ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-700' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-900/30 font-medium'}`}
           >
-            <MessageSquare className={`mr-3 h-5 w-5 ${activeTab === 'community' ? 'animate-pulse' : ''}`} /> Community Posts
+            <MessageSquare className={`mr-3 h-5 w-5 ${isActive('/teacher/community') ? 'animate-pulse' : ''}`} /> Community Posts
           </Button>
         </Link>
         <Link href="/teacher/creativity" passHref>
           <Button 
             variant="ghost" 
-            className={`w-full justify-start h-11 px-4 rounded-xl transition-all duration-200 ${activeTab === 'creativity' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-700' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-900/30 font-medium'}`}
+            className={`w-full justify-start h-11 px-4 rounded-xl transition-all duration-200 ${isActive('/teacher/creativity') ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-700' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-900/30 font-medium'}`}
           >
-            <Lightbulb className={`mr-3 h-5 w-5 ${activeTab === 'creativity' ? 'animate-pulse' : ''}`} /> Teacher Creativity
+            <Lightbulb className={`mr-3 h-5 w-5 ${isActive('/teacher/creativity') ? 'animate-pulse' : ''}`} /> Teacher Creativity
           </Button>
         </Link>
       </nav>

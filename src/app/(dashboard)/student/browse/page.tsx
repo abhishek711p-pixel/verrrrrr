@@ -18,10 +18,7 @@ export default async function BrowsePage() {
   const courses = await getAvailableCourses(session.user.email);
   
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <StudentSidebar />
-
-      <main className="flex-1 p-8 overflow-y-auto">
+    <div className="p-4 md:p-8 animate-in fade-in duration-700">
         <header className="mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Course Catalog</h1>
@@ -97,7 +94,6 @@ export default async function BrowsePage() {
             <p className="max-w-md text-center">There are no new courses available in the catalog at this moment.</p>
           </div>
         )}
-      </main>
     </div>
   );
 }

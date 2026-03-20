@@ -77,14 +77,7 @@ export default async function TeacherDashboard() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-white dark:bg-slate-950 selection:bg-indigo-500/30 overflow-hidden relative">
-      {/* Background Decor */}
-      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-br from-indigo-500/10 to-transparent blur-3xl mix-blend-multiply pointer-events-none -z-10" />
-      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-tl from-cyan-500/10 to-transparent blur-3xl mix-blend-multiply pointer-events-none -z-10" />
-
-      <TeacherSidebar activeTab="dashboard" />
-
-      <main className="flex-1 p-8 space-y-8 overflow-auto">
+    <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-700">
         {/* ── Hero Header ── */}
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 p-8 shadow-xl shadow-indigo-500/20">
           {/* Decorative blobs */}
@@ -174,7 +167,6 @@ export default async function TeacherDashboard() {
             </div>
           </CardContent>
         </Card>
-      </main>
     </div>
   );
 }

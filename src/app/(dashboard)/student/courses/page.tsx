@@ -18,10 +18,7 @@ export default async function StudentCoursesPage() {
   const courses = await getStudentCourses(session.user.email);
   
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <StudentSidebar />
-
-      <main className="flex-1 p-8 overflow-y-auto">
+    <div className="p-4 md:p-8 animate-in fade-in duration-700">
         <header className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">My Learning Queue</h1>
@@ -86,7 +83,6 @@ export default async function StudentCoursesPage() {
             <p className="max-w-md text-center mb-6">It looks like the teachers you are subscribed to haven't uploaded any courses yet, or you don't have active subscriptions.</p>
           </div>
         )}
-      </main>
     </div>
   );
 }

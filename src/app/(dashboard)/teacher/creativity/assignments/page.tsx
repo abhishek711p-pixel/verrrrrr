@@ -18,10 +18,7 @@ export default async function TeacherAssignmentsPage() {
   const batches = await getTeacherBatches(session.user.email);
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <TeacherSidebar activeTab="creativity" />
-
-      <main className="flex-1 p-8 overflow-y-auto">
+    <div className="p-4 md:p-8 animate-in fade-in duration-700">
         <header className="mb-8 flex justify-between items-center">
           <div>
             <div className="flex items-center text-orange-600 dark:text-orange-400 mb-2">
@@ -36,7 +33,6 @@ export default async function TeacherAssignmentsPage() {
         </header>
 
         <AssignmentManager initialBatches={batches} email={session.user.email} />
-      </main>
     </div>
   );
 }
