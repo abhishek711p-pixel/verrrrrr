@@ -1,0 +1,18 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Run every 3 days at 00:00 to keep the Free Tier active
+    - cron: '0 0 */3 * *'
+  # Allow running this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" -X GET 'https://orhxdjrslzkrxgcgitkd.supabase.co/rest/v1/' \
+            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaHhkanJzbHprcnhnY2dpdGtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4ODkwNTQsImV4cCI6MjA4OTQ2NTA1NH0.wgvGs_HM9rqZE_E65pMsZWTSYEKG_KMKJT5Y0r_4bh8" \
+            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaHhkanJzbHprcnhnY2dpdGtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4ODkwNTQsImV4cCI6MjA4OTQ2NTA1NH0.wgvGs_HM9rqZE_E65pMsZWTSYEKG_KMKJT5Y0r_4bh8"
